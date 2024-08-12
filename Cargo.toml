@@ -1,0 +1,7 @@
+[workspace]
+resolver = "2"
+members = ["crates/llm-gateway", "crates/openai"]
+
+[workspace.dependencies]
+openai = { path = "crates/openai" }
+reqwest = { version = "0.12", features = ["stream", "json"] }
