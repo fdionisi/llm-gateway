@@ -68,6 +68,9 @@ export function Chat() {
         baseURL: "http://localhost:3000/api/ai/v1",
         apiKey: "fake",
         dangerouslyAllowBrowser: true,
+        defaultHeaders: {
+          "x-llm-provider": "anthropic_vertex_ai",
+        },
       }),
     [],
   );
@@ -93,7 +96,7 @@ export function Chat() {
 
       try {
         const response = await client.chat.completions.create({
-          model: "gpt-4o",
+          model: "claude-3-5-sonnet@20240620",
           messages: [
             {
               role: "user",

@@ -27,6 +27,41 @@ dependencies = [
 ]
 
 [[package]]
+name = "anthropic"
+version = "0.1.0"
+source = "git+https://github.com/fdionisi/anthropic-sdk#255eaa098b324a1c8e9f743988dd3d85848b1b84"
+dependencies = [
+ "anyhow",
+ "async-stream",
+ "async-trait",
+ "futures",
+ "reqwest 0.12.5",
+ "reqwest-eventsource 0.6.0",
+ "secrecy",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "anthropic_vertex_ai"
+version = "0.1.0"
+source = "git+https://github.com/fdionisi/anthropic-sdk#255eaa098b324a1c8e9f743988dd3d85848b1b84"
+dependencies = [
+ "anthropic",
+ "anyhow",
+ "reqwest 0.12.5",
+ "secrecy",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "anyhow"
+version = "1.0.86"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b3d1d046238990b9cf5bcde22a3fb3584ee5cf65fb2765f454ed428c7a0063da"
+
+[[package]]
 name = "async-convert"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -62,6 +97,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "async-stream"
+version = "0.3.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cd56dd203fef61ac097dd65721a419ddccb106b2d2b70ba60a6b529f03961a51"
+dependencies = [
+ "async-stream-impl",
+ "futures-core",
+ "pin-project-lite",
+]
+
+[[package]]
+name = "async-stream-impl"
+version = "0.3.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "16e62a023e7c117e27523144c5d2459f4397fcc3cab0085af8e2224f643a0193"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "async-trait"
 version = "0.1.81"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -77,6 +134,22 @@ name = "atomic-waker"
 version = "1.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1505bd5d3d116872e7271a6d4e16d81d0c8570876c8de68093a09ac269d8aac0"
+
+[[package]]
+name = "auth"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "axum",
+ "axum-extra",
+ "headers",
+ "jsonwebtoken",
+ "reqwest 0.12.5",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokio",
+]
 
 [[package]]
 name = "autocfg"
@@ -913,18 +986,22 @@ checksum = "78b3ae25bc7c8c38cec158d1f2757ee79e9b3740fbc7ccf0e59e4b08d793fa89"
 name = "llm-gateway"
 version = "0.1.0"
 dependencies = [
+ "anthropic_vertex_ai",
+ "anyhow",
  "async-openai",
+ "async-stream",
+ "auth",
  "axum",
  "axum-extra",
  "eventsource-stream",
  "futures",
  "headers",
  "jsonwebtoken",
- "once_cell",
  "reqwest 0.12.5",
  "reqwest-eventsource 0.5.0",
  "serde",
  "serde_json",
+ "thiserror",
  "tokio",
  "tokio-stream",
  "tower",
@@ -1098,13 +1175,6 @@ name = "once_cell"
 version = "1.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3fdb12b2476b595f9358c5161aa467c2438859caa136dec86c26fdd2efe17b92"
-
-[[package]]
-name = "openai"
-version = "0.1.0"
-dependencies = [
- "reqwest 0.12.5",
-]
 
 [[package]]
 name = "openssl"

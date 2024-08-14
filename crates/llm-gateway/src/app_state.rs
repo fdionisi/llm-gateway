@@ -1,8 +1,9 @@
 use std::sync::Arc;
 
+use auth::AuthProvider;
 use axum::extract::FromRef;
 
-use crate::{auth::AuthProvider, llm_delegate::LlmDelegate};
+use crate::llm_delegate::LlmDelegate;
 
 #[derive(Clone)]
 pub struct AppState {

@@ -4,13 +4,14 @@ import { NextResponse } from "next/server";
 export const POST = withApiAuthRequired(async function POST(req) {
   const res = new NextResponse();
   const { accessToken } = await getAccessToken(req, res);
-  const { url, method } = req;
+  const { url, method, headers } = req;
   const u = new URL(url);
   const su = `http://localhost:3001/${u.pathname.replaceAll("/api/ai/", "")}`;
   const response = await fetch(su, {
     method,
     duplex: "half",
     headers: {
+      "x-llm-provider": headers.get("x-llm-provider"),
       "content-type": "application/json",
       authorization: `Bearer ${accessToken}`,
     },

@@ -1,7 +1,16 @@
 [workspace]
 resolver = "2"
-members = ["crates/llm-gateway", "crates/openai"]
+members = ["crates/auth", "crates/llm-gateway"]
 
 [workspace.dependencies]
-openai = { path = "crates/openai" }
+anyhow = "1"
+auth = { path = "crates/auth" }
+axum = "0.7"
+axum-extra = { version = "*", features = ["typed-header"] }
+headers = "0.4"
+jsonwebtoken = { version = "8.0" }
 reqwest = { version = "0.12", features = ["stream", "json"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "1"
+tokio = { version = "1.0", features = ["full"] }
