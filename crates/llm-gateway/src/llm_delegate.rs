@@ -4,11 +4,12 @@ mod supported_llm;
 use std::sync::Arc;
 
 use anyhow::bail;
+use futures::future::join_all;
 use llm_provider::LlmProviderMap;
 pub use supported_llm::SupportedLlm;
 
 use crate::entities::{
-    CompletionResponseStream, CreateCompletionRequest, CreateCompletionResponse,
+    CompletionResponseStream, CreateCompletionRequest, CreateCompletionResponse, ListModelResponse,
 };
 
 use super::secret_manager::SecretManagerProvider;
@@ -55,6 +56,35 @@ impl LlmDelegate {
             .await?
             .completion_stream(request)
             .await?)
+    }
+
+    pub async fn models(&self) -> anyhow::Result<ListModelResponse> {
+        Ok(ListModelResponse {
+            data: join_all([
+                self.llm_provider_map
+                    .get(self.secret_manager.clone(), SupportedLlm::Anthropic)
+                    .await?
+                    .models(),
+                self.llm_provider_map
+                    .get(self.secret_manager.clone(), SupportedLlm::AnthropicVertexAi)
+                    .await?
+                    .models(),
+                self.llm_provider_map
+                    .get(self.secret_manager.clone(), SupportedLlm::OpenAi)
+                    .await?
+                    .models(),
+                self.llm_provider_map
+                    .get(self.secret_manager.clone(), SupportedLlm::PerplexityAi)
+                    .await?
+                    .models(),
+            ])
+            .await
+            .into_iter()
+            .filter_map(|r| r.ok())
+            .flatten()
+            .collect(),
+            ..ListModelResponse::default()
+        })
     }
 
     // pub async fn embeddings(

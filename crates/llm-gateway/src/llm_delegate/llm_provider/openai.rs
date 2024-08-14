@@ -4,7 +4,10 @@ use axum::async_trait;
 use futures::StreamExt;
 
 use crate::{
-    entities::{CompletionResponseStream, CreateCompletionRequest, CreateCompletionResponse},
+    entities::{
+        CompletionResponseStream, CreateCompletionRequest, CreateCompletionResponse,
+        ListModelResponse, Model,
+    },
     secret_manager::SecretManagerProvider,
 };
 
@@ -50,5 +53,10 @@ impl LlmProvider for OpenAi {
                 }
             }
         }))
+    }
+
+    async fn models(&self) -> anyhow::Result<Vec<Model>> {
+        let models = self.0.models().list().await?;
+        Ok(serde_json::from_value::<ListModelResponse>(serde_json::to_value(models)?)?.data)
     }
 }

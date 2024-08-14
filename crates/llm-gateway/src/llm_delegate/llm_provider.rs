@@ -1,14 +1,20 @@
+mod anthropic;
 mod anthropic_vertexai;
 mod openai;
+mod perplexityai;
 
 use std::{collections::HashMap, sync::Arc};
 
+use anthropic::Anthropic;
 use anyhow::Result;
 use axum::async_trait;
+use perplexityai::PerplexityAi;
 use tokio::sync::Mutex;
 
 use crate::{
-    entities::{CompletionResponseStream, CreateCompletionRequest, CreateCompletionResponse},
+    entities::{
+        CompletionResponseStream, CreateCompletionRequest, CreateCompletionResponse, Model,
+    },
     llm_delegate::SupportedLlm,
     secret_manager::SecretManagerProvider,
 };
@@ -27,6 +33,8 @@ pub trait AnyLlmProvider: Send + Sync {
         &self,
         request: CreateCompletionRequest,
     ) -> anyhow::Result<CompletionResponseStream>;
+
+    async fn models(&self) -> anyhow::Result<Vec<Model>>;
 }
 
 #[async_trait]
@@ -46,6 +54,8 @@ pub trait LlmProvider: Send + Sync {
     ) -> anyhow::Result<CompletionResponseStream> {
         todo!()
     }
+
+    async fn models(&self) -> anyhow::Result<Vec<Model>>;
 }
 
 #[async_trait]
@@ -66,6 +76,10 @@ where
     ) -> anyhow::Result<CompletionResponseStream> {
         Ok(self.completion_stream(request).await?)
     }
+
+    async fn models(&self) -> anyhow::Result<Vec<Model>> {
+        Ok(self.models().await?)
+    }
 }
 
 #[derive(Default)]
@@ -83,10 +97,11 @@ impl LlmProviderMap {
                 llm,
                 match llm {
                     SupportedLlm::OpenAi => OpenAi::init(secret_manager).await?,
-                    SupportedLlm::Anthropic => todo!(),
+                    SupportedLlm::Anthropic => Anthropic::init(secret_manager).await?,
                     SupportedLlm::AnthropicVertexAi => {
                         AnthropicVertexAi::init(secret_manager).await?
                     }
+                    SupportedLlm::PerplexityAi => PerplexityAi::init(secret_manager).await?,
                 },
             );
         }

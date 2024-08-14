@@ -1,4 +1,4 @@
-use anthropic_vertex_ai::messages::{
+use anthropic::messages::{
     Content, CreateMessageRequest, Message, Metadata, Role, Tool, ToolChoice, ToolChoiceKind,
     ToolInputSchema,
 };

@@ -12,6 +12,7 @@ pub enum SupportedLlm {
     OpenAi,
     Anthropic,
     AnthropicVertexAi,
+    PerplexityAi,
 }
 
 impl SupportedLlm {
@@ -20,7 +21,14 @@ impl SupportedLlm {
             Self::OpenAi => "openai",
             Self::Anthropic => "anthropic",
             Self::AnthropicVertexAi => "vertexai.anthropic",
+            Self::PerplexityAi => "perplexityai",
         }
+    }
+}
+
+impl ToString for SupportedLlm {
+    fn to_string(&self) -> String {
+        self.as_str().to_string()
     }
 }
 
@@ -38,6 +46,7 @@ impl TryFrom<&str> for SupportedLlm {
             "openai" => Ok(Self::OpenAi),
             "anthropic" => Ok(Self::Anthropic),
             "vertexai.anthropic" => Ok(Self::AnthropicVertexAi),
+            "perplexityai" => Ok(Self::PerplexityAi),
             _ => Err(anyhow::anyhow!("Unsupported LLM provider")),
         }
     }

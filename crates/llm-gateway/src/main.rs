@@ -72,8 +72,8 @@ fn app() -> anyhow::Result<Router> {
         .with_state(app_state))
 }
 
-async fn models() -> Response {
-    (StatusCode::NOT_IMPLEMENTED, "".to_string()).into_response()
+async fn models(State(llm_delegate): State<LlmDelegate>) -> Response {
+    Json(llm_delegate.models().await.unwrap()).into_response()
 }
 
 async fn embeddings() -> Response {

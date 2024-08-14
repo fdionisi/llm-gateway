@@ -504,3 +504,38 @@ pub struct CreateCompletionStreamResponse {
 
 pub type CompletionResponseStream =
     Pin<Box<dyn Stream<Item = Result<CreateCompletionStreamResponse>> + Send>>;
+
+/// Describes an OpenAI model offering that can be used with the API.
+#[derive(serde::Serialize, serde::Deserialize)]
+pub struct Model {
+    /// The model identifier, which can be referenced in the API endpoints.
+    pub id: String,
+    /// The object type, which is always "model".
+    pub object: String,
+    /// The Unix timestamp (in seconds) when the model was created.
+    pub created: u32,
+    /// The organization that owns the model.
+    pub owned_by: String,
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+pub struct ListModelResponse {
+    pub object: String,
+    pub data: Vec<Model>,
+}
+
+impl Default for ListModelResponse {
+    fn default() -> Self {
+        Self {
+            object: "list".into(),
+            data: Vec::new(),
+        }
+    }
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+pub struct DeleteModelResponse {
+    pub id: String,
+    pub object: String,
+    pub deleted: bool,
+}
