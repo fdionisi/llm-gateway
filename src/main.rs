@@ -1,10 +1,11 @@
 mod app_state;
+mod auth;
 mod entities;
 mod llm_delegate;
 mod secret_manager;
 
 use app_state::AppState;
-use auth::{auth_middleware, cached_jwk_set::CachedJwkSet};
+use auth::auth_middleware;
 use axum::{
     extract::State,
     http::StatusCode,
@@ -17,12 +18,20 @@ use axum::{
     Json, Router,
 };
 use axum_extra::TypedHeader;
+use clap::Parser;
 use entities::CreateCompletionRequest;
 use llm_delegate::{LlmDelegate, SupportedLlm};
-use std::{convert::Infallible, sync::Arc, time::Duration};
+use std::{convert::Infallible, time::Duration};
 use tokio_stream::StreamExt;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+
+#[derive(Parser)]
+struct Cli {
+    /// The token used for authenticating all incoming requests
+    #[clap(short, long)]
+    token: String,
+}
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -34,7 +43,9 @@ async fn main() -> anyhow::Result<()> {
         .with(tracing_subscriber::fmt::layer())
         .init();
 
-    let app = app()?;
+    let cli = Cli::parse();
+
+    let app = app(cli.token)?;
 
     let listener = tokio::net::TcpListener::bind("127.0.0.1:3001").await?;
 
@@ -44,20 +55,10 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-fn app() -> anyhow::Result<Router> {
-    let audicence = std::env::var("AUTH0_AUDIENCE")?;
+fn app(token: String) -> anyhow::Result<Router> {
     let app_state = AppState::new(
         LlmDelegate::new(secret_manager::EnvSecretManagerProvider::new()),
-        Arc::new(
-            CachedJwkSet::builder()
-                .issuer(std::env::var("AUTH0_ISSUER_BASE_URL")?)
-                .duration(Duration::from_secs(60 * 60 * 24))
-                .validator(Arc::new(move |mut validation| {
-                    validation.set_audience(&[&audicence]);
-                    validation.to_owned()
-                }))
-                .build()?,
-        ),
+        token,
     );
 
     Ok(Router::new()

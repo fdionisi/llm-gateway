@@ -1,12 +1,18 @@
-[workspace]
-resolver = "2"
-members = ["crates/auth", "crates/llm-gateway"]
+[package]
+name = "llm-gateway"
+version = "0.1.0"
+edition = "2021"
 
-[workspace.dependencies]
+[dependencies]
+anthropic = { git = "https://github.com/fdionisi/anthropic-sdk" }
+anthropic_vertexai = { git = "https://github.com/fdionisi/anthropic-sdk" }
 anyhow = "1"
-auth = { path = "crates/auth" }
+async-openai = "0.23.4"
+async-stream = "0.3.5"
 axum = "0.7"
 axum-extra = { version = "*", features = ["typed-header"] }
+clap = { version = "4.5.15", features = ["derive"] }
+futures = "0.3"
 headers = "0.4"
 jsonwebtoken = { version = "8.0" }
 reqwest = { version = "0.12", features = ["stream", "json"] }
@@ -14,3 +20,8 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = "1"
 tokio = { version = "1.0", features = ["full"] }
+tokio-stream = "0.1"
+tower = "*"
+tower-http = { version = "0.5.0", features = ["fs", "trace", "cors"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
