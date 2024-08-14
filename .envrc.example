@@ -1,6 +1,10 @@
-export AUTH0_SECRET='run [openssl rand -hex 32] and paste the ouput here'
-export AUTH0_BASE_URL='http://localhost:3000'
-export AUTH0_ISSUER_BASE_URL=''
-export AUTH0_CLIENT_ID=''
-export AUTH0_CLIENT_SECRET=''
-export AUTH0_AUDIENCE=''
+export AUTH_TOKEN='run [openssl rand -hex 32] and paste the ouput here'
+
+export OPENAI_API_TOKEN=''
+
+export ANTHROPIC_API_TOKEN=''
+
+export GCLOUD_PROJECT_ID=''
+export GCLOUD_REGION=''
+
+export PERPLEXITYAI_API_KEY=''

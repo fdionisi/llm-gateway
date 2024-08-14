@@ -12,7 +12,7 @@ impl AppState {
     pub fn new(llm_delegate: LlmDelegate, token: String) -> Self {
         Self {
             llm_delegate,
-            token,
+            token: token.to_string(),
         }
     }
 }

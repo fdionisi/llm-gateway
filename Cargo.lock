@@ -78,7 +78,7 @@ dependencies = [
 [[package]]
 name = "anthropic"
 version = "0.1.0"
-source = "git+https://github.com/fdionisi/anthropic-sdk#35a2c3672e09b7ddae159a5da298491941dbbe8d"
+source = "git+https://github.com/fdionisi/anthropic-sdk?rev=35a2c3672e09b7ddae159a5da298491941dbbe8d#35a2c3672e09b7ddae159a5da298491941dbbe8d"
 dependencies = [
  "anyhow",
  "async-stream",
@@ -94,7 +94,7 @@ dependencies = [
 [[package]]
 name = "anthropic_vertexai"
 version = "0.1.0"
-source = "git+https://github.com/fdionisi/anthropic-sdk#35a2c3672e09b7ddae159a5da298491941dbbe8d"
+source = "git+https://github.com/fdionisi/anthropic-sdk?rev=35a2c3672e09b7ddae159a5da298491941dbbe8d#35a2c3672e09b7ddae159a5da298491941dbbe8d"
 dependencies = [
  "anthropic",
  "anyhow",

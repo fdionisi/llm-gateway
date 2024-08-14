@@ -29,8 +29,25 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 #[derive(Parser)]
 struct Cli {
     /// The token used for authenticating all incoming requests
-    #[clap(short, long)]
+    #[clap(short, long, env = "AUTH_TOKEN")]
     token: String,
+}
+
+impl Cli {
+    fn app(self) -> anyhow::Result<Router> {
+        let app_state = AppState::new(LlmDelegate::new(secret_manager::Env::new()), self.token);
+
+        Ok(Router::new()
+            .route("/v1/chat/completions", post(completions))
+            .route("/v1/embeddings", post(embeddings))
+            .route("/v1/models", get(models))
+            .layer(middleware::from_fn_with_state(
+                app_state.clone(),
+                auth_middleware,
+            ))
+            .layer(TraceLayer::new_for_http())
+            .with_state(app_state))
+    }
 }
 
 #[tokio::main]
@@ -45,7 +62,7 @@ async fn main() -> anyhow::Result<()> {
 
     let cli = Cli::parse();
 
-    let app = app(cli.token)?;
+    let app = cli.app()?;
 
     let listener = tokio::net::TcpListener::bind("127.0.0.1:3001").await?;
 
@@ -53,24 +70,6 @@ async fn main() -> anyhow::Result<()> {
     axum::serve(listener, app).await?;
 
     Ok(())
-}
-
-fn app(token: String) -> anyhow::Result<Router> {
-    let app_state = AppState::new(
-        LlmDelegate::new(secret_manager::EnvSecretManagerProvider::new()),
-        token,
-    );
-
-    Ok(Router::new()
-        .route("/v1/chat/completions", post(completions))
-        .route("/v1/embeddings", post(embeddings))
-        .route("/v1/models", get(models))
-        .layer(middleware::from_fn_with_state(
-            app_state.clone(),
-            auth_middleware,
-        ))
-        .layer(TraceLayer::new_for_http())
-        .with_state(app_state))
 }
 
 async fn models(State(llm_delegate): State<LlmDelegate>) -> Response {
@@ -87,37 +86,21 @@ async fn completions(
     Json(request): Json<CreateCompletionRequest>,
 ) -> Response {
     if request.stream.is_some_and(|f| f) {
-        return completions_stream(State(llm_delegate), TypedHeader(llm), Json(request)).await;
+        let stream = llm_delegate.completion_stream(llm, request).await.unwrap();
+        let stream = stream.map(|item| {
+            Ok::<Event, Infallible>(
+                Event::default().data(&serde_json::to_string(&item.unwrap()).unwrap()),
+            )
+        });
+
+        Sse::new(stream)
+            .keep_alive(
+                axum::response::sse::KeepAlive::new()
+                    .interval(Duration::from_secs(1))
+                    .text("keep-alive-text"),
+            )
+            .into_response()
     } else {
-        return completions_http(State(llm_delegate), TypedHeader(llm), Json(request)).await;
+        Json(llm_delegate.completion(llm, request).await.unwrap()).into_response()
     }
-}
-
-async fn completions_http(
-    State(llm_delegate): State<LlmDelegate>,
-    TypedHeader(llm): TypedHeader<SupportedLlm>,
-    Json(request): Json<CreateCompletionRequest>,
-) -> Response {
-    Json(llm_delegate.completion(llm, request).await.unwrap()).into_response()
-}
-
-async fn completions_stream(
-    State(llm_delegate): State<LlmDelegate>,
-    TypedHeader(llm): TypedHeader<SupportedLlm>,
-    Json(request): Json<CreateCompletionRequest>,
-) -> Response {
-    let stream = llm_delegate.completion_stream(llm, request).await.unwrap();
-    let stream = stream.map(|item| {
-        Ok::<Event, Infallible>(
-            Event::default().data(&serde_json::to_string(&item.unwrap()).unwrap()),
-        )
-    });
-
-    Sse::new(stream)
-        .keep_alive(
-            axum::response::sse::KeepAlive::new()
-                .interval(Duration::from_secs(1))
-                .text("keep-alive-text"),
-        )
-        .into_response()
 }
