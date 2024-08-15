@@ -31,11 +31,20 @@ struct Cli {
     /// The token used for authenticating all incoming requests
     #[clap(short, long, env = "AUTH_TOKEN")]
     token: String,
+    /// The host to bind to
+    #[clap(short, long, default_value = "0.0.0.0")]
+    host: String,
+    /// The port to bind to
+    #[clap(short, long, default_value = "3000")]
+    port: u16,
 }
 
 impl Cli {
-    fn app(self) -> anyhow::Result<Router> {
-        let app_state = AppState::new(LlmDelegate::new(secret_manager::Env::new()), self.token);
+    fn app(&self) -> anyhow::Result<Router> {
+        let app_state = AppState::new(
+            LlmDelegate::new(secret_manager::Env::new()),
+            self.token.clone(),
+        );
 
         Ok(Router::new()
             .route("/v1/chat/completions", post(completions))
@@ -64,7 +73,7 @@ async fn main() -> anyhow::Result<()> {
 
     let app = cli.app()?;
 
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:3001").await?;
+    let listener = tokio::net::TcpListener::bind((cli.host, cli.port)).await?;
 
     tracing::debug!("listening on {}", listener.local_addr()?);
     axum::serve(listener, app).await?;
